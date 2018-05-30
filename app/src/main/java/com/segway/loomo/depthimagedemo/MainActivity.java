@@ -25,6 +25,8 @@ import java.nio.ByteBuffer;
  */
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+
     private static final int SHOW_IMAGE = 0;
 
     private ImageView mDepthImage;
@@ -34,8 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-
-
             mDepthImage.setImageBitmap(convertBmp(depthToGrey(mDepthBitmap)));
         }
     };
@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
         mDepthImage = (ImageView) findViewById(R.id.depthImage);
 
-
         mVision = Vision.getInstance();
         mVision.bindService(this, mBindStateListener);
 
@@ -56,12 +55,12 @@ public class MainActivity extends AppCompatActivity {
     private ServiceBinder.BindStateListener mBindStateListener = new ServiceBinder.BindStateListener() {
         @Override
         public void onBind() {
-            mVision.startListenFrame(StreamType.DEPTH,mFrameListener);
+            mVision.startListenFrame(StreamType.DEPTH, mFrameListener);
         }
 
         @Override
         public void onUnbind(String reason) {
-
+            Log.d(TAG, "onUnbind() called with: reason = [" + reason + "]");
         }
 
 
@@ -78,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
             int bytes = in.capacity();
             out = ByteBuffer.allocate(bytes);
 
-            short [] segments = new short[4];
+            short[] segments = new short[4];
 
-            for (int i = 0; i < bytes /8; i++) {
+            for (int i = 0; i < bytes / 8; i++) {
                 long l = in.getLong();
 
                 long l1 = l & 0x00ff00ff00ff00ffL;
@@ -94,11 +93,10 @@ public class MainActivity extends AppCompatActivity {
                 segments[1] = (short) (l >> 16 & 0x000000000000ffff);
                 segments[0] = (short) (l >> 16 & 0x000000000000ffff);
 
-                for(int j= 0; j<segments.length;j++){
+                for (int j = 0; j < segments.length; j++) {
                     if (segments[j] < 0) {
                         segments[j] = 0;
                     } else if (segments[j] > 500 && segments[j] < 1000) {
-                        Log.d("jacob", "onNewFrame() called with: segment[j] = [" + segments[j] + "]");
                         //inside the interval
                         segments[j] = (short) ((segments[j] - 750) / 4);
 
@@ -141,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
         c.drawBitmap(img, 0, 0, paint);
         return bmp;
     }
-
 
 
 }
